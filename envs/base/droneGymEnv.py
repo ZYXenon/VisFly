@@ -168,16 +168,17 @@ class DroneGymEnvsBase(VecEnv):
         assert self._success.dtype == th.bool and self._failure.dtype == th.bool
 
         # update _rewards
-        if predict and world is not None:
-            feature = world.sequence_model.get_features(deter=self.deter, stoch=self.stoch)
-            predicted_obs = world.decoder(feature)
-        else:
-            predicted_obs = {}
-            
+        # TODO: world model predicted_obs - not yet implemented in any subclass
+        # if predict and world is not None:
+        #     feature = world.sequence_model.get_features(deter=self.deter, stoch=self.stoch)
+        #     predicted_obs = world.decoder(feature)
+        # else:
+        #     predicted_obs = {}
+
         if self._indiv_reward is None:
-            self._reward = self.get_reward(predicted_obs=predicted_obs)
+            self._reward = self.get_reward()
         else:
-            self._indiv_reward = self.get_reward(predicted_obs=predicted_obs)
+            self._indiv_reward = self.get_reward()
             assert isinstance(self._indiv_reward, dict) and "reward" in self._indiv_reward.keys()
             self._reward = self._indiv_reward["reward"]
             for key in self._indiv_reward.keys():
