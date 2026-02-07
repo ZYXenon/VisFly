@@ -74,7 +74,7 @@ class PPO(ori_PPO):
 
         root = os.path.dirname(os.path.abspath(sys.argv[0]))
         self.save_path = f"{root}/saved" if save_path is None else save_path
-        self.create_save_path()
+        self.create_save_path(self.save_path, self.comment)
         kwargs["tensorboard_log"] = self.save_path
         super().__init__(*args, **kwargs)
         try:

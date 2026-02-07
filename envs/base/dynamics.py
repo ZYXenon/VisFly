@@ -571,7 +571,7 @@ class Dynamics:
         self._BODYRATE_PID = PID(p=th.tensor(data["BODYRAYE_PID"]["p"]),
                                  i=th.tensor(data["BODYRAYE_PID"]["i"]),
                                  d=th.tensor(data["BODYRAYE_PID"]["d"]))
-        self._THRUST_PID = PID(p=th.tensor(data["THRUST_PID"]["p"]), i=th.tensor(data["THRUST_PID"]["i"]), d=th.tensor(data["THRUST_PID"]["d"]))
+        # self._THRUST_PID = PID(p=th.tensor(data["THRUST_PID"]["p"]), i=th.tensor(data["THRUST_PID"]["i"]), d=th.tensor(data["THRUST_PID"]["d"]))
         self._VELOCITY_PID = PID(p=th.tensor(data["VELOCITY_PID"]["p"]), i=th.tensor(data["VELOCITY_PID"]["i"]), d=th.tensor(data["VELOCITY_PID"]["d"]))
         self._POSITION_PID = PID(p=th.tensor(data["POSITION_PID"]["p"]), i=th.tensor(data["POSITION_PID"]["i"]), d=th.tensor(data["POSITION_PID"]["d"]))
         self._kappa = th.tensor(data["kappa"])
