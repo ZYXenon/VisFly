@@ -68,9 +68,7 @@ class TestBase:
         if is_fig_save:
             if not is_fig:
                 raise ValueError("is_fig_save must be True if is_fig is True")
-        if is_video_save:
-            if not is_video:
-                raise ValueError("is_video_save must be True if is_video is True")
+
         if policy is None:
             policy = self.model.policy
         env = self.env
@@ -143,8 +141,9 @@ class TestBase:
 
         if is_video:
             self.play(is_sub_video=is_sub_video)
-            if is_video_save:
-                self.save_video()
+
+        if is_video_save:
+            self.save_video()
 
         render_video = th.as_tensor(np.stack(self.render_image_all, axis=0)).unsqueeze(0) if len(self.render_image_all) > 0 else None
         return figs, render_video, mean_r, mean_l
