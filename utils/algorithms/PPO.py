@@ -147,6 +147,22 @@ class PPO(ori_PPO):
                 if not continue_training:
                     break
 
+                # DEBUG: 检查 rollout buffer 中是否有 NaN
+                buf = self.rollout_buffer
+                for attr_name in ["observations", "actions", "rewards", "values", "log_probs", "returns", "advantages"]:
+                    data = getattr(buf, attr_name, None)
+                    if data is not None:
+                        if isinstance(data, dict):
+                            for k, v in data.items():
+                                arr = v if isinstance(v, np.ndarray) else v
+                                if np.isnan(arr).any() or np.isinf(arr).any():
+                                    print(f"[NaN DEBUG] rollout_buffer.{attr_name}['{k}'] has NaN/Inf! iter={iteration}")
+                        elif isinstance(data, np.ndarray):
+                            if np.isnan(data).any() or np.isinf(data).any():
+                                nan_cnt = np.isnan(data).sum()
+                                inf_cnt = np.isinf(data).sum()
+                                print(f"[NaN DEBUG] rollout_buffer.{attr_name} has {nan_cnt} NaN, {inf_cnt} Inf! iter={iteration}")
+
                 iteration += 1
                 self._update_current_progress_remaining(self.num_timesteps, total_timesteps)
 
@@ -206,10 +222,31 @@ class PPO(ori_PPO):
                 if self.use_sde:
                     self.policy.reset_noise(self.batch_size)
 
+                # DEBUG: 检查观测值是否包含 NaN/Inf
+                if isinstance(rollout_data.observations, dict):
+                    for key, obs_val in rollout_data.observations.items():
+                        if th.isnan(obs_val).any() or th.isinf(obs_val).any():
+                            nan_count = th.isnan(obs_val).sum().item()
+                            inf_count = th.isinf(obs_val).sum().item()
+                            print(f"[NaN DEBUG] observations['{key}'] has {nan_count} NaN, {inf_count} Inf values!")
+                            print(f"  shape={obs_val.shape}, min={obs_val[~th.isnan(obs_val)].min().item():.4f}, max={obs_val[~th.isnan(obs_val)].max().item():.4f}")
+                else:
+                    if th.isnan(rollout_data.observations).any() or th.isinf(rollout_data.observations).any():
+                        print(f"[NaN DEBUG] observations has NaN/Inf!")
+
                 values, log_prob, entropy = self.policy.evaluate_actions(
                     rollout_data.observations, actions
                 )
                 values = values.flatten()
+
+                # DEBUG: 检查网络输出是否包含 NaN
+                if th.isnan(values).any() or th.isnan(log_prob).any():
+                    print(f"[NaN DEBUG] Network output has NaN! values_nan={th.isnan(values).sum().item()}, log_prob_nan={th.isnan(log_prob).sum().item()}")
+                    # 检查网络权重
+                    for name, param in self.policy.named_parameters():
+                        if th.isnan(param).any():
+                            print(f"  [NaN DEBUG] Parameter '{name}' has {th.isnan(param).sum().item()} NaN values!")
+                    break
                 # Normalize advantage
                 advantages = rollout_data.advantages
                 # Normalization does not make sense if mini batchsize == 1, see GH issue #325
