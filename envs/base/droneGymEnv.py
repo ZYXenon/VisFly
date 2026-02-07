@@ -457,8 +457,8 @@ class DroneGymEnvsBase(VecEnv):
         }
         return observations
 
-    def get_full_observation(self, indice=None,predicted_obs=None):
-        obs = self.get_observation(predicted_obs=predicted_obs)
+    def get_full_observation(self, indice=None, predicted_obs=None):
+        obs = self.get_observation()
         assert isinstance(obs, TensorDict)
 
         if self.deter is not None:
