@@ -89,7 +89,7 @@ class TestBase:
 
         while True:
             with th.no_grad():
-                action = policy.predict(obs, deterministic=True, sample=True)
+                action = policy.predict(obs, deterministic=True)
                 if isinstance(action, tuple):
                     action = action[0]
                 # obs, reward, done, info = env.step(action, is_test=True)
