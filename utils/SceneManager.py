@@ -264,6 +264,9 @@ class SceneManager(ABC):
         elif "hssd" in self.datasets.lower():
             self.datasets_name = "hssd-hab"
             self._datasets_path = root_addr + "datasets/hssd-hab/hssd-hab.scene_dataset_config.json"
+        elif "playroom" in self.datasets.lower():
+            self.datasets_name = "playroom"
+            self._datasets_path = root_addr + "datasets/playroom/playroom.scene_dataset_config.json"
         elif "mp3d" in self.datasets.lower():
             self.datasets_name = "mp3d"
             self._datasets_path = root_addr + "datasets/visfly-beta/visfly-beta.scene_dataset_config.json"
@@ -923,9 +926,11 @@ class SceneManager(ABC):
         env = habitat_sim.Simulator(cfg)
         env.seed(self.seed)
 
-        NavmeshSetting = habitat_sim.NavMeshSettings()
-        NavmeshSetting.include_static_objects = True
-        env.recompute_navmesh(env.pathfinder, NavmeshSetting)
+        # Only recompute navmesh if one wasn't already loaded (e.g. from scene_instance)
+        if not env.pathfinder.is_loaded:
+            NavmeshSetting = habitat_sim.NavMeshSettings()
+            NavmeshSetting.include_static_objects = True
+            env.recompute_navmesh(env.pathfinder, NavmeshSetting)
         return env
 
     def reset(self, std_positions: Tensor, std_orientations: Tensor) -> Tuple[List, List]:
