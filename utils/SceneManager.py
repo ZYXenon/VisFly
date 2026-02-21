@@ -926,11 +926,13 @@ class SceneManager(ABC):
         env = habitat_sim.Simulator(cfg)
         env.seed(self.seed)
 
-        # Only recompute navmesh if one wasn't already loaded (e.g. from scene_instance)
-        if not env.pathfinder.is_loaded:
-            NavmeshSetting = habitat_sim.NavMeshSettings()
-            NavmeshSetting.include_static_objects = True
-            env.recompute_navmesh(env.pathfinder, NavmeshSetting)
+        # Navmesh is for ground navigation, not useful for UAV free-space flight.
+        # Collision detection uses CGAL AABB Tree (createMeshKDTree) instead.
+        # Disabled to avoid redundant getJoinedMesh() call during scene loading.
+        # if not env.pathfinder.is_loaded:
+        #     NavmeshSetting = habitat_sim.NavMeshSettings()
+        #     NavmeshSetting.include_static_objects = True
+        #     env.recompute_navmesh(env.pathfinder, NavmeshSetting)
         return env
 
     def reset(self, std_positions: Tensor, std_orientations: Tensor) -> Tuple[List, List]:
