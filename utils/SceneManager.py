@@ -926,6 +926,14 @@ class SceneManager(ABC):
         env = habitat_sim.Simulator(cfg)
         env.seed(self.seed)
 
+        # Ensure drone object templates are registered with handles matching _drone_path.
+        # When using non-visfly-beta datasets (e.g. playroom), the dataset config may load
+        # agents from a different relative path, causing handle mismatch.
+        obj_tmpl_mgr = env.metadata_mediator.object_template_manager
+        for dp in self._drone_path:
+            if not obj_tmpl_mgr.get_library_has_handle(dp):
+                obj_tmpl_mgr.load_object_configs(dp)
+
         # Navmesh is for ground navigation, not useful for UAV free-space flight.
         # Collision detection uses CGAL AABB Tree (createMeshKDTree) instead.
         # Disabled to avoid redundant getJoinedMesh() call during scene loading.
