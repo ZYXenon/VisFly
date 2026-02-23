@@ -253,4 +253,6 @@ class TestBase:
                 video_obs[i].release()
 
         print(f"video saved in {path}")
+        for p in path_obs:
+            print(f"sub-video saved in {p}")
         # raise NotImplementedError
