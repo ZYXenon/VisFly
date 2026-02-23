@@ -11,7 +11,7 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
     """
     Indoor point-goal navigation with per-episode random targets.
     Targets are sampled in collision-free space via rejection sampling.
-    Collision terminates the episode.
+    Collision does NOT terminate the episode (heavy penalty instead).
     """
 
     def __init__(
@@ -42,6 +42,7 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
             sensor_kwargs=sensor_kwargs,
             device=device,
             max_episode_steps=max_episode_steps,
+            is_collision_reset=False,
         )
 
         # Target sampling range (ENU coords, covering playroom interior)
@@ -157,11 +158,11 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
         return (self.position - self.target).norm(dim=1) <= self.success_radius
 
     def get_failure(self) -> th.Tensor:
-        return self.is_collision
+        return th.zeros(self.num_agent, dtype=th.bool)
 
     # ---- Reward ----
 
-    def get_reward(self) -> th.Tensor:
+    def get_reward(self) -> dict:
         to_target = self.target - self.position
         dist = to_target.norm(dim=1)
         to_target_dir = to_target / (dist.unsqueeze(1) + 1e-6)
@@ -185,8 +186,11 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
         ).relu()
         r_collision_v = -approach_obs_speed * (1 - self.collision_dis).relu() * 0.01
 
-        # Hard collision penalty
-        r_collision = self.is_collision.float() * -1.0
+        # Hard collision penalty (heavier since collision no longer terminates)
+        r_collision = self.is_collision.float() * -2.0
+
+        # Survival reward (encourage staying alive and exploring)
+        r_survival = th.ones(self.num_agent) * 0.01
 
         # Success bonus (proportional to remaining steps)
         r_success = self._success.float() * (
@@ -200,7 +204,18 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
             + r_proximity
             + r_collision_v
             + r_collision
+            + r_survival
             + r_success
         )
 
-        return reward
+        return {
+            "reward": reward,
+            "r_approach": r_approach.detach(),
+            "r_speed": r_speed.detach(),
+            "r_omega": r_omega.detach(),
+            "r_proximity": r_proximity.detach(),
+            "r_collision_v": r_collision_v.detach(),
+            "r_collision": r_collision.detach(),
+            "r_survival": r_survival.detach(),
+            "r_success": r_success.detach(),
+        }
