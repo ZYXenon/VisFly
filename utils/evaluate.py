@@ -87,9 +87,14 @@ class TestBase:
         self.eq_r = []
         self.eq_l = []
 
+        obs_space_keys = set(env.observation_space.spaces.keys())
+
         while True:
             with th.no_grad():
-                action = policy.predict(obs, deterministic=True)
+                # Filter obs to only keys in observation_space (e.g. exclude "color" sensor
+                # which is attached for video recording but not part of the policy input)
+                policy_obs = {k: v for k, v in obs.items() if k in obs_space_keys}
+                action = policy.predict(policy_obs, deterministic=True)
                 if isinstance(action, tuple):
                     action = action[0]
                 # obs, reward, done, info = env.step(action, is_test=True)

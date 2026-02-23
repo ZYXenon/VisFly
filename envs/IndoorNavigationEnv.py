@@ -149,6 +149,8 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
 
         if self.visual:
             obs["depth"] = th.from_numpy(self.sensor_obs["depth"]).to(self.device)
+            if "color" in self.sensor_obs:
+                obs["color"] = th.from_numpy(self.sensor_obs["color"]).to(self.device)
 
         return obs
 
