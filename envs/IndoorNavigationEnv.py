@@ -45,8 +45,8 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
             is_collision_reset=False,
         )
 
-        # Apply seed (base class stores it but never calls th.manual_seed)
-        th.manual_seed(seed)
+        # # Apply seed (base class stores it but never calls th.manual_seed)
+        # th.manual_seed(seed)
 
         # Target sampling range (ENU coords, covering playroom interior)
         if target_range is None:
