@@ -11,7 +11,7 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
     """
     Indoor point-goal navigation with per-episode random targets.
     Targets are sampled in collision-free space via rejection sampling.
-    Collision does NOT terminate the episode (heavy penalty instead).
+    Collision terminates the episode.
     """
 
     def __init__(
@@ -42,7 +42,6 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
             sensor_kwargs=sensor_kwargs,
             device=device,
             max_episode_steps=max_episode_steps,
-            is_collision_reset=False,
         )
 
         # # Apply seed (base class stores it but never calls th.manual_seed)
@@ -163,7 +162,7 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
         return (self.position - self.target).norm(dim=1) <= self.success_radius
 
     def get_failure(self) -> th.Tensor:
-        return th.zeros(self.num_agent, dtype=th.bool)
+        return self.is_collision
 
     # ---- Reward ----
 
@@ -191,8 +190,8 @@ class IndoorNavigationEnv(DroneGymEnvsBase):
         ).relu()
         r_collision_v = -approach_obs_speed * (1 - self.collision_dis).relu() * 0.01
 
-        # Hard collision penalty (heavier since collision no longer terminates)
-        r_collision = self.is_collision.float() * -2.0
+        # Hard collision penalty
+        r_collision = self.is_collision.float() * -1.0
 
         # Survival reward (encourage staying alive and exploring)
         r_survival = th.ones(self.num_agent) * 0.01
